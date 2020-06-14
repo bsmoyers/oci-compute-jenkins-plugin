@@ -58,7 +58,6 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
     public final String imageCompartmentId;
     public final String imageId;
     public final String shape;
-    public final String sizeInGBs;
     public final String sshCredentialsId;
     public final String description;
     public final String labelString;
@@ -89,7 +88,6 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
             final String imageCompartmentId,
             final String imageId,
             final String shape,
-            final String sizeInGBs,
             final String sshCredentialsId,
             final String description,
             final String remoteFS,
@@ -113,7 +111,6 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
         this.imageCompartmentId = imageCompartmentId;
         this.imageId = imageId;
         this.shape = shape;
-        this.sizeInGBs = sizeInGBs;
         this.sshCredentialsId = sshCredentialsId;
         this.description = description;
         this.remoteFS = remoteFS;
@@ -161,10 +158,6 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
 
     public String getShape() {
         return shape;
-    }
-
-    public String getSizeInGBs() {
-      return sizeInGBs;
     }
 
     public String getSshCredentialsId() {
