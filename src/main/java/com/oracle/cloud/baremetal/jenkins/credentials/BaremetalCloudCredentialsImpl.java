@@ -93,13 +93,7 @@ public final class BaremetalCloudCredentialsImpl extends BaseStandardCredentials
     }
 
     protected String getPlainText(String str) {
-        if (str != null) {
-            Secret secret = Secret.decrypt(str);
-            if (secret != null) {
-                return secret.getPlainText();
-            }
-        }
-        return null;
+        return  str == null ? null : Secret.decrypt(str).getPlainText();
     }
 
     @Extension
