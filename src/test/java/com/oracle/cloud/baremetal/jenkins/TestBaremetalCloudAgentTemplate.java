@@ -40,6 +40,7 @@ public class TestBaremetalCloudAgentTemplate extends BaremetalCloudAgentTemplate
         String imageCompartmentId;
         String imageId;
         String shape;
+        String bootVolumeSizeInGBs;
         String sshCredentialsId;
 
         //SSHUserPrivateKey sshCredentials;
@@ -128,6 +129,12 @@ public class TestBaremetalCloudAgentTemplate extends BaremetalCloudAgentTemplate
             return this;
         }
 
+        public Builder bootVolumeSizeInGBs(String bootVolumeSizeInGBs) {
+            this.bootVolumeSizeInGBs = bootVolumeSizeInGBs;
+            return this;
+        }
+
+
         public Builder initScriptTimeoutSeconds(String initScriptTimeoutSeconds) {
             this.initScriptTimeoutSeconds = initScriptTimeoutSeconds;
             return this;
@@ -184,6 +191,7 @@ public class TestBaremetalCloudAgentTemplate extends BaremetalCloudAgentTemplate
                 builder.imageCompartmentId,
                 builder.imageId,
                 builder.shape,
+                builder.bootVolumeSizeInGBs,
                 builder.sshCredentialsId,
                 builder.description,
                 builder.remoteFS,

@@ -20,6 +20,8 @@ import com.oracle.bmc.core.VirtualNetworkClient;
 import com.oracle.bmc.core.model.CreateVnicDetails;
 import com.oracle.bmc.core.model.Image;
 import com.oracle.bmc.core.model.Instance;
+import com.oracle.bmc.core.model.InstanceSourceDetails;
+import com.oracle.bmc.core.model.InstanceSourceViaImageDetails;
 import com.oracle.bmc.core.model.LaunchInstanceDetails;
 import com.oracle.bmc.core.model.Shape;
 import com.oracle.bmc.core.model.Subnet;
@@ -193,6 +195,8 @@ public class SDKBaremetalCloudClient implements BaremetalCloudClient {
             String imageIdStr = template.getImage();
             String shape = template.getShape();
             String sshPublicKey = template.getPublicKey();
+            Long bootVolumeSizeInGBs = 
+                (template.getBootVolumeSizeInGBs() != null ? Long.parseLong(template.getBootVolumeSizeInGBs()): 0);
             String instanceName = name;
 
             boolean assignPublicIP = true;
@@ -208,25 +212,36 @@ public class SDKBaremetalCloudClient implements BaremetalCloudClient {
                 assignPublicIP=false;
             }
 
-            LaunchInstanceResponse response = computeClient.launchInstance(LaunchInstanceRequest
-                    .builder()
-                    .launchInstanceDetails(
-                            LaunchInstanceDetails
-                            .builder()
-                            .availabilityDomain(ad)
-                            .compartmentId(compartmentIdStr)
-                            .createVnicDetails(
-                                    CreateVnicDetails.builder()
-                                    .assignPublicIp(assignPublicIP)
-                                    .subnetId(subnetIdStr)
-                                    .build())
-                            .displayName(instanceName)
-                            .imageId(imageIdStr)
-                            .metadata(metadata)
-                            .shape(shape)
-                            .subnetId(subnetIdStr)
-                            .build())
+            InstanceSourceViaImageDetails sourceDetails;
+
+            if (bootVolumeSizeInGBs == 0) {
+              sourceDetails = InstanceSourceViaImageDetails.builder()
+                .imageId(imageIdStr).build();
+            } else {
+              sourceDetails = InstanceSourceViaImageDetails.builder()
+                .imageId(imageIdStr).bootVolumeSizeInGBs(bootVolumeSizeInGBs).build();
+            }
+
+            LaunchInstanceDetails launchInstanceDetails = LaunchInstanceDetails.builder()
+                .sourceDetails(sourceDetails)
+                .availabilityDomain(ad)
+                .compartmentId(compartmentIdStr)
+                .createVnicDetails(
+                    CreateVnicDetails.builder()
+                    .assignPublicIp(assignPublicIP)
+                    .subnetId(subnetIdStr)
+                    .build())
+                .displayName(instanceName)
+                .metadata(metadata)
+                .shape(shape)
+                .subnetId(subnetIdStr)
+                .build();
+
+            LaunchInstanceResponse response = computeClient.launchInstance(
+                LaunchInstanceRequest.builder()
+                    .launchInstanceDetails(launchInstanceDetails)
                     .build());
+
 
             instance = response.getInstance();
             return instance;
