@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+import java.util.stream.Collectors;
 import java.net.InetAddress;
 
 import javax.servlet.ServletException;
@@ -306,16 +307,21 @@ public class BaremetalCloud extends AbstractCloudImpl{
     }
 
     public BaremetalCloudAgentTemplate getTemplate(Label label) {
-        for (BaremetalCloudAgentTemplate t : templates) {
+        List<? extends BaremetalCloudAgentTemplate> templatescopy = templates.stream().collect(Collectors.toList());
+        Collections.shuffle( templatescopy );
+        for (BaremetalCloudAgentTemplate t : templatescopy) {
+            LOGGER.log(Level.INFO, "trying templateId {0}", t.templateId ); 
             if (t.getDisableCause() != null) {
                 continue;
             }
             if (t.getMode() == Node.Mode.NORMAL) {
                 if (label == null || label.matches(t.getLabelAtoms())) {
+                    LOGGER.log(Level.INFO, "matched on templateId {0} {1} ", new Object[]{ t.templateId, label } );
                     return t;
                 }
             } else if (t.getMode() == Node.Mode.EXCLUSIVE) {
                 if (label != null && label.matches(t.getLabelAtoms())) {
+                    LOGGER.log(Level.INFO, "matched on templateId {0} {1} ", new Object[] { t.templateId, label } );
                     return t;
                 }
             }
