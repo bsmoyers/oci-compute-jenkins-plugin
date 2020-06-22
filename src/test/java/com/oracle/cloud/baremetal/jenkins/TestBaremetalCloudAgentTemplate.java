@@ -40,6 +40,7 @@ public class TestBaremetalCloudAgentTemplate extends BaremetalCloudAgentTemplate
         String imageCompartmentId;
         String imageId;
         String shape;
+        String shapeOcpu;
         String bootVolumeSizeInGBs;
         String sshCredentialsId;
 
@@ -128,6 +129,11 @@ public class TestBaremetalCloudAgentTemplate extends BaremetalCloudAgentTemplate
             this.shape = shape;
             return this;
         }
+ 
+        public Builder shapeOcpu(String shapeOcpu) {
+            this.shapeOcpu = shapeOcpu;
+            return this;
+        }
 
         public Builder bootVolumeSizeInGBs(String bootVolumeSizeInGBs) {
             this.bootVolumeSizeInGBs = bootVolumeSizeInGBs;
@@ -191,6 +197,7 @@ public class TestBaremetalCloudAgentTemplate extends BaremetalCloudAgentTemplate
                 builder.imageCompartmentId,
                 builder.imageId,
                 builder.shape,
+                builder.shapeOcpu,
                 builder.bootVolumeSizeInGBs,
                 builder.sshCredentialsId,
                 builder.description,

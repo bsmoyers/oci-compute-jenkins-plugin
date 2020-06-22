@@ -58,6 +58,7 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
     public final String imageCompartmentId;
     public final String imageId;
     public final String shape;
+    public final String shapeOcpu;
     public final String bootVolumeSizeInGBs;
     public final String sshCredentialsId;
     public final String description;
@@ -74,9 +75,11 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
     public final String startTimeoutSeconds;
     public final String sshConnectTimeoutSeconds;
     public final String initScriptTimeoutSeconds;
+//    public final String disableTimeoutSeconds;
     public final String instanceCap;
 
     private transient int failureCount;
+//    private transient int disableStartTime;
     private transient String disableCause;
 
     @DataBoundConstructor
@@ -89,6 +92,7 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
             final String imageCompartmentId,
             final String imageId,
             final String shape,
+            final String shapeOcpu,
             final String bootVolumeSizeInGBs,
             final String sshCredentialsId,
             final String description,
@@ -113,6 +117,7 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
         this.imageCompartmentId = imageCompartmentId;
         this.imageId = imageId;
         this.shape = shape;
+        this.shapeOcpu = shapeOcpu;
         this.bootVolumeSizeInGBs = bootVolumeSizeInGBs;
         this.sshCredentialsId = sshCredentialsId;
         this.description = description;
@@ -165,6 +170,10 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
 
     public String getBootVolumeSizeInGBs() {
       return bootVolumeSizeInGBs;
+    }
+
+    public String getShapeOcpu() {
+      return shapeOcpu;
     }
 
     public String getSshCredentialsId() {
@@ -299,6 +308,7 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
             LOGGER.warning("Agent template " + getDisplayName() + " disabled due to error: " + cause);
             disableCause = cause;
         }
+        LOGGER.info("Agent template " + getDisplayName() + " failure count is at : " + failureCount);
     }
 
     public synchronized void resetFailureCount() {

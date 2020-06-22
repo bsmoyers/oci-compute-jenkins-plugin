@@ -24,6 +24,7 @@ import com.oracle.bmc.core.model.InstanceSourceDetails;
 import com.oracle.bmc.core.model.InstanceSourceViaImageDetails;
 import com.oracle.bmc.core.model.LaunchInstanceDetails;
 import com.oracle.bmc.core.model.Shape;
+import com.oracle.bmc.core.model.LaunchInstanceShapeConfigDetails;
 import com.oracle.bmc.core.model.Subnet;
 import com.oracle.bmc.core.model.Vcn;
 import com.oracle.bmc.core.model.VnicAttachment;
@@ -197,6 +198,12 @@ public class SDKBaremetalCloudClient implements BaremetalCloudClient {
             String sshPublicKey = template.getPublicKey();
             Long bootVolumeSizeInGBs = 
                 (template.getBootVolumeSizeInGBs() != null ? Long.parseLong(template.getBootVolumeSizeInGBs()): 0);
+            Float shapeOcpu = null;
+            LaunchInstanceShapeConfigDetails shapeConfig = null;
+            if (template.getShapeOcpu() != "" ) {
+                shapeOcpu = Float.parseFloat(template.getShapeOcpu());
+                shapeConfig = LaunchInstanceShapeConfigDetails.builder().ocpus(shapeOcpu).build();
+            }
             String instanceName = name;
 
             boolean assignPublicIP = true;
@@ -234,6 +241,7 @@ public class SDKBaremetalCloudClient implements BaremetalCloudClient {
                 .displayName(instanceName)
                 .metadata(metadata)
                 .shape(shape)
+                .shapeConfig(shapeConfig)
                 .subnetId(subnetIdStr)
                 .build();
 

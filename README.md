@@ -208,6 +208,7 @@ Click **Verify Credentials** that you can connect successfully to your Oracle Cl
    - **Image Compartment** -  The compartment from which to select the Instance's image. 
    - **Image** - Select the Image the instance will use. **Note:** Java should be installed on the image as a Jenkins requirement. Alternatively refer to **Init Script** in Advanced section below to install Java on the newly launched Linux instances. **Note:** Windows images also need to be preconfigured and to be able to authenticate with SSH.
    - **Shape** - The Shape for your instance.
+   - **Shape OCPU** - The number of OCPUs for Flexiable shapes.
    - **Boot Disk Size (GB)** - The number of gigabytes allocated to the boot volume.  If not specified, it defaults to the Image size.
    - **Virtual Cloud Network Compartment** -  The compartment from which to select the Virtual Cloud Network and Subnet. 
    - **Virtual Cloud Network** - The Virtual Cloud Network for your instance.

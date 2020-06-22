@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -102,6 +103,7 @@ public class BaremetalCloud extends AbstractCloudImpl{
     private final String credentialsId;
     private final String maxAsyncThreads;
     private final int nextTemplateId;
+    private int iteratorTemplateId;
     private final List<? extends BaremetalCloudAgentTemplate> templates;
 
     @DataBoundConstructor
@@ -248,7 +250,8 @@ public class BaremetalCloud extends AbstractCloudImpl{
                 throw ex;
             }
             return newBaremetalCloudAgent(name, template, this.name, instance.getId(), Ip);
-        } catch (IOException | RuntimeException e) {
+    //    } catch (IOException | RuntimeException e) {
+         } catch (Throwable e) { 
             String message = e.getMessage();
             template.increaseFailureCount(message != null ? message : e.toString());
             throw e;
@@ -307,9 +310,9 @@ public class BaremetalCloud extends AbstractCloudImpl{
     }
 
     public BaremetalCloudAgentTemplate getTemplate(Label label) {
-        List<? extends BaremetalCloudAgentTemplate> templatescopy = templates.stream().collect(Collectors.toList());
-        Collections.shuffle( templatescopy );
-        for (BaremetalCloudAgentTemplate t : templatescopy) {
+        LOGGER.log(Level.INFO, "iteratorTemplateId =  {0}",iteratorTemplateId );
+        for (ListIterator<? extends BaremetalCloudAgentTemplate> iter = templates.listIterator(iteratorTemplateId); iter.hasNext(); ) {       
+            BaremetalCloudAgentTemplate t = iter.next();
             LOGGER.log(Level.INFO, "trying templateId {0}", t.templateId ); 
             if (t.getDisableCause() != null) {
                 continue;
@@ -317,11 +320,17 @@ public class BaremetalCloud extends AbstractCloudImpl{
             if (t.getMode() == Node.Mode.NORMAL) {
                 if (label == null || label.matches(t.getLabelAtoms())) {
                     LOGGER.log(Level.INFO, "matched on templateId {0} {1} ", new Object[]{ t.templateId, label } );
+                    // increment the iterator start id on match
+                    iteratorTemplateId = (iteratorTemplateId +1 ) % templates.size();
+                    LOGGER.log(Level.INFO, "new iteratorTemplateId =  {0}",iteratorTemplateId );
                     return t;
                 }
             } else if (t.getMode() == Node.Mode.EXCLUSIVE) {
                 if (label != null && label.matches(t.getLabelAtoms())) {
                     LOGGER.log(Level.INFO, "matched on templateId {0} {1} ", new Object[] { t.templateId, label } );
+                    // increment the iterator start id on match
+                    iteratorTemplateId = (iteratorTemplateId +1 ) % templates.size();
+                    LOGGER.log(Level.INFO, "new iteratorTemplateId =  {0}",iteratorTemplateId );
                     return t;
                 }
             }

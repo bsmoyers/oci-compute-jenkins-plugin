@@ -49,6 +49,10 @@
 	    <f:select />
 	  </f:entry>
 
+          <f:entry title="${%shapeOcpu}" field="shapeOcpu">
+             <f:textbox default="" /> 
+          </f:entry>
+
           <f:entry title="${%bootVolumeSizeInGBs}" field="bootVolumeSizeInGBs">
 	    <f:textbox default="" />
           </f:entry>
