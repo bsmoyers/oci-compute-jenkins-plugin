@@ -197,7 +197,7 @@ public class SDKBaremetalCloudClient implements BaremetalCloudClient {
             String shape = template.getShape();
             String sshPublicKey = template.getPublicKey();
             Long bootVolumeSizeInGBs = 
-                (template.getBootVolumeSizeInGBs() != null ? Long.parseLong(template.getBootVolumeSizeInGBs()): 0);
+                (template.getBootVolumeSizeInGBs() != "" ? Long.parseLong(template.getBootVolumeSizeInGBs()): 0);
             Float shapeOcpu = null;
             LaunchInstanceShapeConfigDetails shapeConfig = null;
             if (template.getShapeOcpu() != "" ) {
