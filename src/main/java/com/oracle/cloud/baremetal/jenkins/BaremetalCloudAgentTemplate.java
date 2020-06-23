@@ -352,6 +352,31 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
             return checkSshConnectTimeoutSeconds(value).getFormValidation();
         }
 
+        public FormValidation doCheckBootVolumeSizeInGBs(@QueryParameter String value) {
+            if (value == null || value.trim().isEmpty()) {
+               return FormValidation.ok();
+            }
+            try {
+                int size = Integer.parseInt(value);
+                if (size<47)
+                     return FormValidation.warning(Messages.BaremetalCloudAgentTemplate_bootvolumesize_minimum());
+                else
+                     return FormValidation.ok();
+             } catch (NumberFormatException e) {
+                     return FormValidation.error("Not a number");
+             }
+        }
+
+        public FormValidation doCheckShapeOcpu(@QueryParameter String value, @QueryParameter String shape) {
+            if (shape.equals("VM.Standard.E3.Flex") && (value == null || value.trim().isEmpty())) {
+                return FormValidation.warning(Messages.BaremetalCloudAgentTemplate_shapeOcpu_flex_empty());
+            }
+            if (!shape.equals("VM.Standard.E3.Flex") && (value != null && !value.trim().isEmpty())) {
+                return FormValidation.warning(Messages.BaremetalCloudAgentTemplate_shapeOcpu_nonflex_nonempty());
+            }
+            return FormValidation.ok();
+        }
+
         public FormValidation doCheckAssignPublicIP(
                 @QueryParameter @RelativePath("..") String credentialsId,
                 @QueryParameter @RelativePath("..") String maxAsyncThreads,
