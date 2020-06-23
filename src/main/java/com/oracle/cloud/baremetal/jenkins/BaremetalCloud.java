@@ -250,8 +250,8 @@ public class BaremetalCloud extends AbstractCloudImpl{
                 throw ex;
             }
             return newBaremetalCloudAgent(name, template, this.name, instance.getId(), Ip);
-    //    } catch (IOException | RuntimeException e) {
-         } catch (Throwable e) { 
+        // catch any exception here, including failing to provision for quota issues.
+        } catch (Exception  e) {
             String message = e.getMessage();
             template.increaseFailureCount(message != null ? message : e.toString());
             throw e;
