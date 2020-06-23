@@ -27,6 +27,7 @@ public class TestBaremetalCloudAgentTemplate extends BaremetalCloudAgentTemplate
         String remoteFS;
         Boolean assignPublicIP;
         Boolean usePublicIP;
+        Boolean reUseBootVolume;
         String sshConnectTimeoutSeconds;
         String initScript;
         String startTimeoutSeconds;
@@ -112,6 +113,11 @@ public class TestBaremetalCloudAgentTemplate extends BaremetalCloudAgentTemplate
 
         public Builder usePublicIP(Boolean usePublicIP) {
             this.usePublicIP = usePublicIP;
+            return this;
+        }
+
+        public Builder reUseBootVolume(Boolean reUseBootVolume) {
+            this.reUseBootVolume = reUseBootVolume;
             return this;
         }
 
@@ -204,6 +210,7 @@ public class TestBaremetalCloudAgentTemplate extends BaremetalCloudAgentTemplate
                 builder.remoteFS,
                 builder.assignPublicIP,
                 builder.usePublicIP,
+                builder.reUseBootVolume,
                 builder.numExecutors,
                 builder.mode,
                 builder.labelString,

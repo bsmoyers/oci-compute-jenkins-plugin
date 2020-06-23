@@ -72,6 +72,7 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
     public final String remoteFS;
     public final Boolean assignPublicIP;
     public final Boolean usePublicIP;
+    public final Boolean reUseBootVolume;
     public final String startTimeoutSeconds;
     public final String sshConnectTimeoutSeconds;
     public final String initScriptTimeoutSeconds;
@@ -99,6 +100,7 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
             final String remoteFS,
             final Boolean assignPublicIP,
             final Boolean usePublicIP,
+            final Boolean reUseBootVolume,
             final String numExecutors,
             Node.Mode mode,
             final String labelString,
@@ -124,6 +126,7 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
         this.remoteFS = remoteFS;
         this.assignPublicIP=assignPublicIP;
         this.usePublicIP=usePublicIP;
+        this.reUseBootVolume=reUseBootVolume;
         this.numExecutors = numExecutors;
         this.mode = mode;
         this.labelString = labelString;
@@ -198,6 +201,10 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
 
     public Boolean getUsePublicIP() {
     	return usePublicIP;
+    }
+
+    public Boolean getReUseBootVolume() {
+        return reUseBootVolume;
     }
 
     public int getNumExecutors() {
@@ -659,5 +666,6 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
             }
             return FormValidation.validateNonNegativeInteger(value);
         }
+
     }
 }

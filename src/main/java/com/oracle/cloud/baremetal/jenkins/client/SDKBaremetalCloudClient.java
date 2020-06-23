@@ -197,7 +197,7 @@ public class SDKBaremetalCloudClient implements BaremetalCloudClient {
             String shape = template.getShape();
             String sshPublicKey = template.getPublicKey();
             Long bootVolumeSizeInGBs = 
-                (template.getBootVolumeSizeInGBs() != null ? Long.parseLong(template.getBootVolumeSizeInGBs()): 0);
+                (template.getBootVolumeSizeInGBs() != "" ? Long.parseLong(template.getBootVolumeSizeInGBs()): 0);
             Float shapeOcpu = null;
             LaunchInstanceShapeConfigDetails shapeConfig = null;
             if (template.getShapeOcpu() != "" ) {
@@ -478,8 +478,9 @@ public class SDKBaremetalCloudClient implements BaremetalCloudClient {
     @Override
     public String terminateInstance(String instanceId) throws Exception {
         try (ComputeClient computeClient = getComputeClient()) {
+            //FIXME need to properly figure out if we are supposed to keep boot volume (per template id)
             TerminateInstanceResponse response = computeClient
-                    .terminateInstance(TerminateInstanceRequest.builder().instanceId(instanceId).build());
+                    .terminateInstance(TerminateInstanceRequest.builder().instanceId(instanceId).preserveBootVolume(true).build());
             return response.getOpcRequestId();
         }
     }
