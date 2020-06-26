@@ -75,11 +75,9 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
     public final String startTimeoutSeconds;
     public final String sshConnectTimeoutSeconds;
     public final String initScriptTimeoutSeconds;
-//    public final String disableTimeoutSeconds;
     public final String instanceCap;
 
     private transient int failureCount;
-//    private transient int disableStartTime;
     private transient String disableCause;
 
     @DataBoundConstructor
