@@ -33,7 +33,6 @@ public class NoDelayProvisionerStrategy extends NodeProvisioner.Strategy {
     @Override
     public NodeProvisioner.StrategyDecision apply(NodeProvisioner.StrategyState strategyState) {
         final Label label = strategyState.getLabel();
-        LOGGER.log(Level.INFO, "BSM in NoDelayProvisionerStrategy");
         LoadStatistics.LoadStatisticsSnapshot snapshot = strategyState.getSnapshot();
         int availableCapacity =
                 snapshot.getAvailableExecutors()   // live executors
