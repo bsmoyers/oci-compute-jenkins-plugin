@@ -18,10 +18,13 @@ import java.util.logging.Logger;
 
 
 /**
+ * based on
+ * https://github.com/jenkinsci/kubernetes-plugin/blob/master/src/main/java/io/jenkins/plugins/kubernetes/NoDelayProvisionerStrategy.java
+ * under Apache 2.0 License
+ * https://github.com/jenkinsci/kubernetes-plugin/blob/master/LICENSE
+ * 
  * Implementation of {@link NodeProvisioner.Strategy} which will provision a new node immediately as
  * a task enter the queue.
- * In kubernetes, we don't really need to wait before provisioning a new node,
- * because kubernetes agents can be started and destroyed quickly
  *
  * @author <a href="mailto:root@junwuhui.cn">runzexia</a>
  */
@@ -29,9 +32,16 @@ import java.util.logging.Logger;
 public class NoDelayProvisionerStrategy extends NodeProvisioner.Strategy {
 
     private static final Logger LOGGER = Logger.getLogger(NoDelayProvisionerStrategy.class.getName());
+    private static final boolean DISABLE_NODELAY_PROVISING = Boolean.valueOf(
+            System.getProperty("com.oracle.cloud.baremetal.jenkins.disableNoDelayProvisioning"));
 
     @Override
     public NodeProvisioner.StrategyDecision apply(NodeProvisioner.StrategyState strategyState) {
+        if (DISABLE_NODELAY_PROVISING) {
+            LOGGER.log(Level.FINE, "Provisioning not complete, NoDelayProvisionerStrategy is disabled");
+            return NodeProvisioner.StrategyDecision.CONSULT_REMAINING_STRATEGIES;
+        }
+
         final Label label = strategyState.getLabel();
         LoadStatistics.LoadStatisticsSnapshot snapshot = strategyState.getSnapshot();
         int availableCapacity =
