@@ -218,7 +218,8 @@ public class BaremetalCloudAgentTemplateUnitTest {
         Assert.assertEquals(FormValidation.Kind.OK, new BaremetalCloudAgentTemplate.DescriptorImpl().doCheckIdleTerminationMinutes(" ").kind);
         Assert.assertEquals(FormValidation.Kind.OK, new BaremetalCloudAgentTemplate.DescriptorImpl().doCheckIdleTerminationMinutes("1").kind);
         Assert.assertEquals(FormValidation.Kind.OK, new BaremetalCloudAgentTemplate.DescriptorImpl().doCheckIdleTerminationMinutes("0").kind);
-        Assert.assertEquals(FormValidation.Kind.ERROR, new BaremetalCloudAgentTemplate.DescriptorImpl().doCheckIdleTerminationMinutes("-1").kind);
+        Assert.assertEquals(FormValidation.Kind.OK, new BaremetalCloudAgentTemplate.DescriptorImpl().doCheckIdleTerminationMinutes("-1").kind);
+        Assert.assertEquals(FormValidation.Kind.ERROR, new BaremetalCloudAgentTemplate.DescriptorImpl().doCheckIdleTerminationMinutes("-2").kind);
         Assert.assertEquals(FormValidation.Kind.ERROR, new BaremetalCloudAgentTemplate.DescriptorImpl().doCheckIdleTerminationMinutes("x").kind);
     }
 

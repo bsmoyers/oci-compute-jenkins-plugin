@@ -14,6 +14,8 @@ import com.oracle.cloud.baremetal.jenkins.client.BaremetalCloudClient;
 
 import hudson.model.TaskListener;
 import hudson.slaves.RetentionStrategy.Always;
+import hudson.slaves.RetentionStrategy.Demand;
+import org.jenkinsci.plugins.durabletask.executors.OnceRetentionStrategy;
 
 public class BaremetalCloudAgentUnitTest {
     @Rule
@@ -119,7 +121,7 @@ public class BaremetalCloudAgentUnitTest {
 
         Assert.assertTrue(method.invoke(null, "42") instanceof BaremetalCloudRetentionStrategy);
         Assert.assertTrue(method.invoke(null, "1") instanceof BaremetalCloudRetentionStrategy);
-        Assert.assertTrue(method.invoke(null, "-1") instanceof BaremetalCloudRetentionStrategy);
+        Assert.assertTrue(method.invoke(null, "-1") instanceof OnceRetentionStrategy);
         Assert.assertTrue(method.invoke(null, "") instanceof Always);
         Assert.assertTrue(method.invoke(null, "   ") instanceof Always);
         Assert.assertTrue(method.invoke(null, "0") instanceof Always);
