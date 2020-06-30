@@ -172,8 +172,6 @@ public class BaremetalCloud extends AbstractCloudImpl{
         if (template == null) {
             return Collections.emptyList();
         }
-        LOGGER.info(fmtLogMsg("increasing excessWorkload to simulate extra load"));
-        excessWorkload++;
         LOGGER.info(fmtLogMsg("requested Agent provision excessWorkload: " + excessWorkload));
         List<PlannedNode> plannedNodes = new ArrayList<>();
 

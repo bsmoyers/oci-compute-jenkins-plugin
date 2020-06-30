@@ -43,6 +43,7 @@ public class NoDelayProvisionerStrategy extends NodeProvisioner.Strategy {
         }
 
         final Label label = strategyState.getLabel();
+         LOGGER.log(Level.INFO, "strategyState.getLabel()={0}", label);
         LoadStatistics.LoadStatisticsSnapshot snapshot = strategyState.getSnapshot();
         int availableCapacity =
                 snapshot.getAvailableExecutors()   // live executors
@@ -58,7 +59,10 @@ public class NoDelayProvisionerStrategy extends NodeProvisioner.Strategy {
             for (Cloud cloud : jenkinsClouds) {
                 int workloadToProvision = currentDemand - availableCapacity;
                 if (!(cloud instanceof BaremetalCloud)) continue;
-                if (!cloud.canProvision(label)) continue;
+                if (!cloud.canProvision(label)) {
+                   LOGGER.log(Level.INFO, "cloud {0} can't provision label {1}", new Object[]{cloud.getDisplayName(), label});
+                   continue;
+                }
                 for (CloudProvisioningListener cl : CloudProvisioningListener.all()) {
                     if (cl.canProvision(cloud, strategyState.getLabel(), workloadToProvision) != null) {
                         continue;
