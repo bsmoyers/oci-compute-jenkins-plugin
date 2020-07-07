@@ -60,7 +60,7 @@ public class NoDelayProvisionerStrategy extends NodeProvisioner.Strategy {
                 int workloadToProvision = currentDemand - availableCapacity;
                 if (!(cloud instanceof BaremetalCloud)) continue;
                 if (!cloud.canProvision(label)) {
-                   LOGGER.log(Level.INFO, "cloud {0} can't provision label {1}", new Object[]{cloud.getDisplayName(), label});
+                   LOGGER.log(Level.INFO, "cloud {0} can not provision label {1}", new Object[]{cloud.getDisplayName(), label});
                    continue;
                 }
                 for (CloudProvisioningListener cl : CloudProvisioningListener.all()) {
