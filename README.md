@@ -116,7 +116,7 @@ Refer to OCI Java SDK licensing [here](https://github.com/oracle/oci-java-sdk/bl
 2. If you want to use the latest version of OCI Java SDK, update pom.xml
 
    ```
-   <oci-java-sdk.version>1.17.4</oci-java-sdk.version>
+   <oci-java-sdk.version>1.19.2</oci-java-sdk.version>
    ```
 
    Compile and Install package:
@@ -146,7 +146,9 @@ The master will need to be restarted before the plugin is loaded and made availa
 ## Upgrade
 Updates are listed in the Updates tab of the **Manage Plugins** page and can be installed by checking the checkbox of the Oracle Cloud Infrastructure Compute plugin updates and clicking the **Download now and install after restart** button.
 
-**Note**:  Upgrading the Plugin may require you to update your already created OCI Cloud and Templates Configuration. After upgrade please check all OCI Cloud values are OK in Manage Jenkins > Configure System. For example, a new method of adding OCI Credentials was added in v106 of the Plugin. Previously these OCI Credentials were added in the OCI Cloud Configuration. If upgrading to v106 from an earlier version, then you may have to update the values in your existing Cloud configuration.
+**Note**:  Upgrading the Plugin may require you to update your already created OCI Cloud and Templates Configuration. After upgrade please check all OCI Cloud values are OK in Manage Jenkins > Manage Nodes and Clouds > Configure Clouds. Then Click **Save**.
+
+For example, a new method of adding OCI Credentials was added in v106 of the Plugin. Previously these OCI Credentials were added in the OCI Cloud Configuration. If upgrading from a version earlier than v106, then you may have to update the values in your existing Cloud configuration.
 
 **Note**: A plugin version with new functionality may only take effect on Slaves built with that new version. You may need to remove older Slaves.
 
@@ -162,7 +164,7 @@ You can add these OCI Credentials by navigating to the Jenkins Server console, C
 
 *or*
 
-by navigating to the Jenkins Server console, click Manage Jenkins, and Configure System. In Cloud section, click **Add a new cloud** and select **Oracle Cloud Infrastructure Compute**. In **Credentials**, click **Add**.
+by navigating to the Jenkins Server console, click Manage Jenkins, then Manage Nodes and Clouds, and  Configure Clouds. Click **Add a new cloud** and select **Oracle Cloud Infrastructure Compute**. In **Credentials**, click **Add**.
 
 Once in the New Credentials Screen, select **Oracle Cloud Infrastructure Credentials** from the **Kind** Drop-Down.
 
@@ -183,8 +185,8 @@ Click **Verify Credentials** that you can connect successfully to your Oracle Cl
 
 #### Add OCI Cloud
 
-1. From Jenkins Server console, click Manage Jenkins, and Configure System
-2. In Cloud section, click **Add a new cloud** and select **Oracle Cloud Infrastructure Compute**
+1. In Jenkins, click Manage Jenkins > Manage Nodes and Clouds > Configure Clouds.
+2. Click **Add a new cloud** and select **Oracle Cloud Infrastructure Compute**
 3. Enter credentials to access your OCI account. You can create multiple Clouds.
    - **Name**  - A name for this OCI Compute Cloud.
    - **Credentials** - The OCI credentials required to connect to your Oracle Cloud Infrastructure.
@@ -208,8 +210,12 @@ Click **Verify Credentials** that you can connect successfully to your Oracle Cl
    - **Image Compartment** -  The compartment from which to select the Instance's image. 
    - **Image** - Select the Image the instance will use. **Note:** Java should be installed on the image as a Jenkins requirement. Alternatively refer to **Init Script** in Advanced section below to install Java on the newly launched Linux instances. **Note:** Windows images also need to be preconfigured and to be able to authenticate with SSH.
    - **Shape** - The Shape for your instance.
+<<<<<<< HEAD
    - **Shape OCPU** - The number of OCPUs for Flexible shapes.
    - **Boot Disk Size (GB)** - The number of gigabytes allocated to the boot volume.  If not specified, it defaults to the Image size.
+=======
+   - **Number of OCPUs** - You can customize the number of OCPUs that are allocated to a flexible  shape. This field only takes effect if you select a flexible shape. The other resources are scaled proportionately. For more, please  see [Compute Shapes](https://docs.cloud.oracle.com/en-us/iaas/Content/Compute/References/computeshapes.htm#flexible).
+>>>>>>> upstream/master
    - **Virtual Cloud Network Compartment** -  The compartment from which to select the Virtual Cloud Network and Subnet. 
    - **Virtual Cloud Network** - The Virtual Cloud Network for your instance.
    - **Subnet** - Subnet of your Virtual Cloud Network.
