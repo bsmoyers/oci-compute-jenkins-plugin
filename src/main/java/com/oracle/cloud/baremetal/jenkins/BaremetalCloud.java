@@ -311,16 +311,19 @@ public class BaremetalCloud extends AbstractCloudImpl{
     public BaremetalCloudAgentTemplate getTemplate(Label label) {
         for (ListIterator<? extends BaremetalCloudAgentTemplate> iter = templates.listIterator(iteratorTemplateId); iter.hasNext(); ) {       
             BaremetalCloudAgentTemplate t = iter.next();
+            LOGGER.log(Level.INFO, "in getTemplate(), iteratorTempalteId={0}", iteratorTemplateId);
             iteratorTemplateId = (iteratorTemplateId +1 ) % templates.size();
             if (t.getDisableCause() != null) {
                 continue;
             }
             if (t.getMode() == Node.Mode.NORMAL) {
                 if (label == null || label.matches(t.getLabelAtoms())) {
+                    iteratorTemplateId = (iteratorTemplateId +1 ) % templates.size();
                     return t;
                 }
             } else if (t.getMode() == Node.Mode.EXCLUSIVE) {
                 if (label != null && label.matches(t.getLabelAtoms())) {
+                    iteratorTemplateId = (iteratorTemplateId +1 ) % templates.size();
                     return t;
                 }
             }

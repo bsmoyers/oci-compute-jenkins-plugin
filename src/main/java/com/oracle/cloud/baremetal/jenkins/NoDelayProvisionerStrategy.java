@@ -50,6 +50,14 @@ public class NoDelayProvisionerStrategy extends NodeProvisioner.Strategy {
                         + snapshot.getConnectingExecutors()  // executors present but not yet connected
                         + strategyState.getPlannedCapacitySnapshot()     // capacity added by previous strategies from previous rounds
                         + strategyState.getAdditionalPlannedCapacity();  // capacity added by previous strategies _this round_
+        // change available capacity by the pool size
+        if (label.getDisplayName().indexOf("large") >= 0) {
+          // anticipate less of the large shapes
+          availableCapacity -= 2;
+        } else { 
+          // more of other shapes... need to implement this as a property attached to templates.
+          availableCapacity -= 10;
+        }
         int currentDemand = snapshot.getQueueLength();
         LOGGER.log(Level.INFO, "Available capacity={0}, currentDemand={1}",
                 new Object[]{availableCapacity, currentDemand});
