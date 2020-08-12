@@ -71,7 +71,7 @@ public class SDKBaremetalCloudClient implements BaremetalCloudClient {
         this.provider = provider;
         this.regionId = regionId;
         this.maxAsyncThreads = maxAsyncThreads;
-        this.clientConfig = ClientConfiguration.builder().maxAsyncThreads(maxAsyncThreads)..build();
+        this.clientConfig = ClientConfiguration.builder().maxAsyncThreads(maxAsyncThreads).build();
         ClientRuntime.setClientUserAgent("Oracle-Jenkins/" + Jenkins.VERSION);
     }
 
