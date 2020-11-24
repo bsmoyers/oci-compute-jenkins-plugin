@@ -5,9 +5,7 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,6 +14,7 @@ import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
 
 import javax.servlet.ServletException;
 
+import com.oracle.bmc.identity.model.Tenancy;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -42,7 +41,7 @@ import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
-import java.util.Collections;
+
 import java.util.stream.IntStream;
 
 import jenkins.model.Jenkins;
@@ -56,7 +55,9 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
     public final String availableDomain;
     public final String vcnCompartmentId;
     public final String vcnId;
+    public final String subnetCompartmentId;
     public final String subnetId;
+    public final List<BaremetalCloudNsgTemplate> nsgIds;
     public final String imageCompartmentId;
     public final String imageId;
     public final String shape;
@@ -78,6 +79,10 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
     public final String initScriptTimeoutSeconds;
     public final String instanceCap;
     public final String numberOfOcpus;
+    public final Boolean autoImageUpdate;
+    public final Boolean stopOnIdle;
+    public final List<BaremetalCloudTagsTemplate> tags;
+    public final String instanceNamePrefix;
 
     private transient int failureCount;
     private transient String disableCause;
@@ -88,7 +93,9 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
             final String availableDomain,
             final String vcnCompartmentId,
             final String vcnId,
+            final String subnetCompartmentId,
             final String subnetId,
+            final List<BaremetalCloudNsgTemplate> nsgIds,
             final String imageCompartmentId,
             final String imageId,
             final String shape,
@@ -108,12 +115,18 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
             final String startTimeoutSeconds,
             final String initScriptTimeoutSeconds,
             final String instanceCap,
-            final String numberOfOcpus){
+            final String numberOfOcpus,
+            final Boolean autoImageUpdate,
+            final Boolean stopOnIdle,
+            final List<BaremetalCloudTagsTemplate> tags,
+            final String instanceNamePrefix){
     	this.compartmentId = compartmentId;
         this.availableDomain = availableDomain;
         this.vcnCompartmentId = vcnCompartmentId;
         this.vcnId = vcnId;
+        this.subnetCompartmentId = subnetCompartmentId;
         this.subnetId = subnetId;
+        this.nsgIds = nsgIds;
         this.imageCompartmentId = imageCompartmentId;
         this.imageId = imageId;
         this.shape = shape;
@@ -134,6 +147,10 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
         this.initScriptTimeoutSeconds = initScriptTimeoutSeconds;
         this.instanceCap = instanceCap;
         this.numberOfOcpus = numberOfOcpus;
+        this.autoImageUpdate = autoImageUpdate;
+        this.stopOnIdle = stopOnIdle;
+        this.tags = tags;
+        this.instanceNamePrefix = instanceNamePrefix;
     }
 
     public String getcompartmentId() {
@@ -152,8 +169,16 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
         return vcnId;
     }
 
+    public String getSubnetCompartmentId() {
+        return subnetCompartmentId;
+    }
+
     public String getSubnet() {
         return subnetId;
+    }
+
+    public List<BaremetalCloudNsgTemplate> getNsgIds() {
+        return nsgIds;
     }
 
     public String getImageCompartmentId() {
@@ -162,6 +187,10 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
 
     public String getImage() {
         return imageId;
+    }
+
+    public Boolean getAutoImageUpdate() {
+        return autoImageUpdate == null ? Boolean.FALSE : autoImageUpdate;
     }
 
     public String getShape() {
@@ -281,6 +310,7 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
         return numberOfOcpus;
     }
 
+
     public String getPublicKey() throws IOException {
         SSHUserPrivateKey sshCredentials = CredentialsMatchers.firstOrNull(
             CredentialsProvider.lookupCredentials(SSHUserPrivateKey.class, Jenkins.getInstance(), ACL.SYSTEM, Collections.<DomainRequirement>emptyList()),
@@ -290,6 +320,18 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
         } else {
             return null;
         }
+    }
+
+    public Boolean getStopOnIdle() {
+        return stopOnIdle == null ? Boolean.FALSE : stopOnIdle;
+    }
+
+    public List<BaremetalCloudTagsTemplate> getTags() {
+        return tags;
+    }
+
+    public String getInstanceNamePrefix() {
+        return instanceNamePrefix;
     }
 
     private static FormValidationValue<Integer> checkInitScriptTimeoutSeconds(String value){
@@ -398,6 +440,13 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
                return FormValidation.ok();
         }
 
+        public FormValidation doCheckInstanceNamePrefix(@QueryParameter String instanceNamePrefix) {
+            if(instanceNamePrefix.contains(" ")) {
+                return FormValidation.error(Messages.BaremetalCloudAgentTemplate_prefix_contains_spaces());
+            }
+            return FormValidation.ok();
+        }
+
         private static boolean anyRequiredFieldEmpty(String... fields) {
             for (String field : fields) {
                 if (field == null || field.isEmpty()) {
@@ -429,6 +478,8 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
 
             try{
                 BaremetalCloudClient client = getClient(credentialsId, maxAsyncThreads);
+                Tenancy tenant = client.getTenant();
+                model.add(tenant.getName(), tenant.getId());
                 for (Compartment compartmentId : client.getCompartmentsList()) {
                     model.add(compartmentId.getName(), compartmentId.getId());
                 }
@@ -470,15 +521,16 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
                 @QueryParameter @RelativePath("..") String maxAsyncThreads,
                 @QueryParameter String compartmentId) throws IOException, ServletException {
             ListBoxModel model = new ListBoxModel();
-            model.add("Default", compartmentId);
 
             if (anyRequiredFieldEmpty(credentialsId, compartmentId)) {
+                model.add("<First select 'Compartment'>", "");
                 return model;
             }
 
             try{
                 BaremetalCloudClient client = getClient(credentialsId, maxAsyncThreads);
-
+                Tenancy tenant = client.getTenant();
+                model.add(tenant.getName(), tenant.getId());
                 for (Compartment compartment : client.getCompartmentsList()) {
                         model.add(compartment.getName(), compartment.getId());
                     }
@@ -588,15 +640,16 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
                 @QueryParameter @RelativePath("..") String maxAsyncThreads,
                 @QueryParameter String compartmentId) throws IOException, ServletException {
             ListBoxModel model = new ListBoxModel();
-            model.add("Default", compartmentId);
 
-            if (anyRequiredFieldEmpty(credentialsId)) {
+            if (anyRequiredFieldEmpty(credentialsId, compartmentId)) {
+                model.add("<First select 'Compartment'>", "");
                 return model;
             }
 
             try{
                 BaremetalCloudClient client = getClient(credentialsId, maxAsyncThreads);
-
+                Tenancy tenant = client.getTenant();
+                model.add(tenant.getName(), tenant.getId());
                 for (Compartment compartment : client.getCompartmentsList()) {
                         model.add(compartment.getName(), compartment.getId());
                     }
@@ -606,6 +659,7 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
 
             return model;
         }
+
         public ListBoxModel doFillVcnIdItems(
                 @QueryParameter @RelativePath("..") String credentialsId,
                 @QueryParameter @RelativePath("..") String maxAsyncThreads,
@@ -633,13 +687,39 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
             return model;
         }
 
+        public ListBoxModel doFillSubnetCompartmentIdItems(
+                @QueryParameter @RelativePath("..") String credentialsId,
+                @QueryParameter @RelativePath("..") String maxAsyncThreads,
+                @QueryParameter String compartmentId) throws IOException, ServletException {
+            ListBoxModel model = new ListBoxModel();
+
+            if (anyRequiredFieldEmpty(credentialsId, compartmentId)) {
+                model.add("<First select 'Compartment'>", "");
+                return model;
+            }
+
+            try{
+                BaremetalCloudClient client = getClient(credentialsId, maxAsyncThreads);
+                Tenancy tenant = client.getTenant();
+                model.add(tenant.getName(), tenant.getId());
+                for (Compartment compartment : client.getCompartmentsList()) {
+                    model.add(compartment.getName(), compartment.getId());
+                }
+            }catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Failed to get compartment list", e);
+            }
+
+            return model;
+        }
+
         public ListBoxModel doFillSubnetIdItems(
                 @QueryParameter @RelativePath("..") String credentialsId,
                 @QueryParameter @RelativePath("..") String maxAsyncThreads,
                 @QueryParameter String availableDomain,
                 @QueryParameter String vcnId,
                 @QueryParameter String compartmentId,
-                @QueryParameter String vcnCompartmentId) throws IOException, ServletException {
+                @QueryParameter String vcnCompartmentId,
+                @QueryParameter String subnetCompartmentId) throws IOException, ServletException {
             ListBoxModel model = new ListBoxModel();
             model.add("<First select 'Availablity Domain' and 'Virtual Cloud Network' above>", "");
 
@@ -647,13 +727,13 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
                 return model;
             }
 
-            if (anyRequiredFieldEmpty(vcnCompartmentId)) {
-                vcnCompartmentId = compartmentId;
+            if (anyRequiredFieldEmpty(subnetCompartmentId)) {
+                subnetCompartmentId = vcnCompartmentId;
             }
 
             try {
                 BaremetalCloudClient client = getClient(credentialsId, maxAsyncThreads);
-                for (Subnet subnet : client.getSubNetList(vcnCompartmentId, vcnId)) {
+                for (Subnet subnet : client.getSubNetList(subnetCompartmentId, vcnId)) {
                     if (null == subnet.getAvailabilityDomain() || subnet.getAvailabilityDomain().equals(availableDomain)) {
                         model.add(subnet.getDisplayName(), subnet.getId());
                     }

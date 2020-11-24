@@ -6,32 +6,39 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>4.2</version>
+    <version>4.10</version>
     <relativePath />
   </parent>
   <artifactId>oracle-cloud-infrastructure-compute</artifactId>
-  <version>1.0.8-SNAPSHOT</version>
+  <version>1.0.11-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
   <properties>
-    <!-- Baseline Jenkins version you use to build the plugin. Users must have this version or newer to run. -->
-    <!--<jenkins.version>2.190.2</jenkins.version>-->
-    <!-- Java Level to use. Java 7 required when using core >= 1.612 -->
-    <!-- Java 8 required due to https://docs.us-phoenix-1.oraclecloud.com/Content/API/SDKDocs/javasdk.htm#Java -->
     <java.level>8</java.level>
-    <!-- Jenkins Test Harness version you use to test the plugin. -->
-    <!-- For Jenkins version >= 1.580.1 use JTH 2.x or higher. -->
-    <!--<jenkins-test-harness.version>2.60</jenkins-test-harness.version> -->
-    <!-- Other properties you may want to use:
-         ~ hpi-plugin.version: The HPI Maven Plugin version used by the plugin..
-         ~ stapler-plugin.version: The Stapler Maven plugin version required by the plugin.
-    -->
-    <oci-java-sdk.version>1.19.2</oci-java-sdk.version>
+    <oci-java-sdk.version>1.26.0</oci-java-sdk.version>
   </properties>
 
   <name>Oracle Cloud Infrastructure Compute Plugin</name>
   <description>This plugin allows you to run dynamic slaves in the Oracle Cloud Infrastructure(OCI) Compute environment.</description>
-  <url>https://wiki.jenkins-ci.org/display/JENKINS/Oracle+Cloud+Infrastructure+Compute+Plugin</url>
+  <url>https://github.com/jenkinsci/oracle-cloud-infrastructure-compute-plugin</url>
+
+  <developers>
+    <developer>
+      <id>cheshi</id>
+      <name>Chenghao Shi</name>
+      <email>chenghao.shi@oracle.com</email>
+    </developer>
+    <developer>
+      <id>kennedyjf</id>
+      <name>Joe Kennedy</name>
+      <email>joe.kennedy@oracle.com</email>
+    </developer>
+    <developer>
+      <id>aandrey</id>
+      <name>Andrey Andreyev</name>
+      <email>andrey.adnreyev@oracle.com</email>
+    </developer>
+  </developers>
 
   <licenses>
     <license>
@@ -126,10 +133,31 @@
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>durable-task</artifactId>
       <version>1.5</version>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.30</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.8.0</version>
     </dependency>
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>${project.basedir}</directory>
+        <includes>
+          <include>LICENSE.txt</include>
+          <include>NOTICE.txt</include>
+          <include>THIRD_PARTY_LICENSES.txt</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>${project.basedir}/src/main/resources</directory>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>

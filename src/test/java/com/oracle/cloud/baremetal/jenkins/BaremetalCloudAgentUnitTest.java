@@ -34,6 +34,7 @@ public class BaremetalCloudAgentUnitTest {
         }});
         TestBaremetalCloudAgent agent = new TestBaremetalCloudAgent.Builder()
                 .instanceId("in")
+                .stopOnIdle(false)
                 .cloud(new TestBaremetalCloud.Builder().client(client).clock(new TestClock()).build())
                 .build();
         agent._terminate(newTerminateTaskListener());
@@ -49,6 +50,7 @@ public class BaremetalCloudAgentUnitTest {
 
         TestBaremetalCloudAgent agent = new TestBaremetalCloudAgent.Builder()
                 .instanceId("in")
+                .stopOnIdle(false)
                 .cloud(new TestBaremetalCloud.Builder().client(client).clock(new TestClock()).build())
                 .build();
         agent._terminate(newTerminateTaskListener());
@@ -62,6 +64,7 @@ public class BaremetalCloudAgentUnitTest {
         }});
         TestBaremetalCloudAgent agent = new TestBaremetalCloudAgent.Builder()
                 .instanceId("in")
+                .stopOnIdle(false)
                 .cloud(new TestBaremetalCloud.Builder().client(client).clock(new TestClock()).build())
                 .build();
         agent._terminate(newTerminateTaskListener());
@@ -71,6 +74,7 @@ public class BaremetalCloudAgentUnitTest {
         TestBaremetalCloudAgent agent = new TestBaremetalCloudAgent.Builder()
                 .cloudName(BaremetalCloud.NAME_PREFIX + "cn")
                 .instanceId("in")
+                .stopOnIdle(false)
                 .build();
         agent._terminate(newTerminateTaskListener());
     }

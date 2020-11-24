@@ -212,7 +212,11 @@ public class BaremetalCloud extends AbstractCloudImpl{
 
             UUID uuid = UUID.randomUUID();
             this.name = BaremetalCloud.NAME_PREFIX + uuid;
-            this.instanceName = INSTANCE_NAME_PREFIX + JENKINS_IP + "-" + uuid;
+            if (template.getInstanceNamePrefix() == null || template.getInstanceNamePrefix().isEmpty()) {
+                this.instanceName = INSTANCE_NAME_PREFIX + JENKINS_IP + "-" + uuid;
+            } else {
+                this.instanceName = INSTANCE_NAME_PREFIX + template.getInstanceNamePrefix() + "-" + JENKINS_IP + "-" + uuid;
+            }
         }
 
         public String getPlannedNodeDisplayName() {
@@ -229,9 +233,44 @@ public class BaremetalCloud extends AbstractCloudImpl{
         LOGGER.info("Provisioning new cloud infrastructure instance");
         try {
             BaremetalCloudClient client = getClient();
-            Instance instance = client.createInstance(instanceName, template);
-            String Ip = "";
+            Instance instance = null;
 
+            if (!template.getStopOnIdle()) {
+                instance = client.createInstance(instanceName, template);
+            } else {
+                List<Instance> allStoppedInstances = client.getStoppedInstances(template.getcompartmentId(), template.getAvailableDomain());
+                if (!allStoppedInstances.isEmpty()) {
+                    String displayName;
+                    if (template.getInstanceNamePrefix() == null || template.getInstanceNamePrefix().isEmpty()) {
+                        displayName = INSTANCE_NAME_PREFIX + JENKINS_IP + "-";
+                    } else {
+                        displayName = INSTANCE_NAME_PREFIX + template.getInstanceNamePrefix() + "-";
+                    }
+                    long numberOfSuitableInstances = allStoppedInstances.stream()
+                            .filter(n -> n.getDisplayName().contains(displayName))
+                            .filter(n -> n.getShape().equals(template.getShape()))
+                            .filter(n -> n.getImageId().equals(template.getImage()))
+                            .count();
+                    if (numberOfSuitableInstances > 0) {
+                        String instanceId = allStoppedInstances.stream()
+                                .filter(n -> n.getDisplayName().contains(displayName))
+                                .filter(n -> n.getShape().equals(template.getShape()))
+                                .filter(n -> n.getImageId().equals(template.getImage()))
+                                .findAny().get().getId();
+                        instance = client.startInstance(instanceId);
+                        instanceName = instance.getDisplayName();
+                    } else {
+                        // If there is no any stopped by this Jenkins instance -> create a new one
+                        instance = client.createInstance(instanceName, template);
+                    }
+                } else {
+                    // If there is no any stopped instance -> create a new one
+                    instance = client.createInstance(instanceName, template);
+                }
+
+            }
+
+            String Ip = "";
             TimeoutHelper timeoutHelper = new TimeoutHelper(getClock(), template.getStartTimeoutNanos(), START_POLL_SLEEP_MILLIS);
             try{
                 client.waitForInstanceProvisioningToComplete(instance.getId());
@@ -286,6 +325,17 @@ public class BaremetalCloud extends AbstractCloudImpl{
         try{
             retry.run();
             client.waitForInstanceTerminationToComplete(instanceId);
+        }catch(Exception e){
+            throw new IOException(e);
+        }
+    }
+
+    public synchronized void stopCloudResources(String instanceId) throws IOException {
+        BaremetalCloudClient client = getClient();
+        Retry<String> retry = getTerminationRetry(() -> client.stopInstance(instanceId));
+        try{
+            retry.run();
+            //client.waitForInstanceTerminationToComplete(instanceId);
         }catch(Exception e){
             throw new IOException(e);
         }
@@ -388,9 +438,9 @@ public class BaremetalCloud extends AbstractCloudImpl{
             String displayName = getPlannedNodeDisplayName();
             try {
                 addNode(super.call());
-                LOGGER.log(Level.INFO, "{0} provisioning successfully completed", displayName);
+                LOGGER.log(Level.INFO, "{0} provisioning successfully completed via Nodes screen", displayName);
             } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "Provisioned slave " + displayName + " failed!", e);
+                LOGGER.log(Level.WARNING, displayName + " provisioning via Nodes screen failed!", e);
             }
 
             // doProvision does not use the Future.

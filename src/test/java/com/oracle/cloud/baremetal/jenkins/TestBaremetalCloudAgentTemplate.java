@@ -1,10 +1,12 @@
 package com.oracle.cloud.baremetal.jenkins;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import hudson.model.Node;
 import hudson.model.labels.LabelAtom;
+import org.apache.xpath.operations.Bool;
 
 
 public class TestBaremetalCloudAgentTemplate extends BaremetalCloudAgentTemplate {
@@ -27,13 +29,19 @@ public class TestBaremetalCloudAgentTemplate extends BaremetalCloudAgentTemplate
         String availableDomain;
         String vcnCompartmentId;
         String vcnId;
+        String subnetCompartmentId;
         String subnetId;
+        List<BaremetalCloudNsgTemplate> nsgIds;
         String imageCompartmentId;
         String imageId;
         String shape;
         String bootVolumeSizeInGBs;
         String sshCredentialsId;
         String ocpu;
+        Boolean autoImageUpdate;
+        Boolean stopOnIdle;
+        List<BaremetalCloudTagsTemplate> tags;
+        String instanceNamePrefix;
 
         public Builder description(String description) {
             this.description = description;
@@ -89,6 +97,11 @@ public class TestBaremetalCloudAgentTemplate extends BaremetalCloudAgentTemplate
             return this;
         }
 
+        public Builder subnetCompartmentId(String subnetCompartmentId) {
+            this.subnetCompartmentId = subnetCompartmentId;
+            return this;
+        }
+
         public Builder subnetId(String subnetId) {
             this.subnetId = subnetId;
             return this;
@@ -139,6 +152,17 @@ public class TestBaremetalCloudAgentTemplate extends BaremetalCloudAgentTemplate
             this.ocpu = ocpu;
             return this;
         }
+
+        public Builder autoImageUpdate(Boolean autoImageUpdate) {
+            this.autoImageUpdate = autoImageUpdate;
+            return this;
+        }
+
+        public Builder nsgIds(List<BaremetalCloudNsgTemplate> nsgIds) {
+            this.nsgIds = nsgIds;
+            return this;
+        }
+
         public Builder remoteFS(String remoteFS) {
             this.remoteFS = remoteFS;
             return this;
@@ -158,7 +182,21 @@ public class TestBaremetalCloudAgentTemplate extends BaremetalCloudAgentTemplate
             this.startTimeoutSeconds = startTimeoutSeconds;
             return this;
         }
-        
+
+        public Builder stopOnIdle(Boolean stopOnIdle) {
+            this.stopOnIdle = stopOnIdle;
+            return this;
+        }
+
+        public Builder tags(List<BaremetalCloudTagsTemplate> tags) {
+            this.tags = tags;
+            return this;
+        }
+
+        public Builder instanceNamePrefix(String instanceNamePrefix) {
+            this.instanceNamePrefix = instanceNamePrefix;
+            return this;
+        }
         public TestBaremetalCloudAgentTemplate build() {
             return new TestBaremetalCloudAgentTemplate(this);
         }
@@ -174,7 +212,9 @@ public class TestBaremetalCloudAgentTemplate extends BaremetalCloudAgentTemplate
                 builder.availableDomain,
                 builder.vcnCompartmentId,
                 builder.vcnId,
+                builder.subnetCompartmentId,
                 builder.subnetId,
+                builder.nsgIds,
                 builder.imageCompartmentId,
                 builder.imageId,
                 builder.shape,
@@ -194,7 +234,11 @@ public class TestBaremetalCloudAgentTemplate extends BaremetalCloudAgentTemplate
                 builder.startTimeoutSeconds,
                 builder.initScriptTimeoutSeconds,
                 builder.instanceCap,
-                builder.ocpu);
+                builder.ocpu,
+                builder.autoImageUpdate,
+                builder.stopOnIdle,
+                builder.tags,
+                builder.instanceNamePrefix);
 
     }
 
