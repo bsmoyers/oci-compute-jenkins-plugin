@@ -3,6 +3,36 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## 1.0.11 - November 2020
+
+### Fixed
+
+- OCI Java SDK 1.26.0
+- Tags Template option
+- Custom Instance Name Prefix option
+- root compartment added to Compartment list
+- Images added to the Stop/Start filter
+
+
+
+## 1.0.10 - September 2020
+
+### Fixed
+
+- Fix java.util.NoSuchElementException: No value present
+
+
+
+### 1.0.9 - September 2020
+
+### Added
+
+- Network **Subnet Compartment** field.
+- **Network Security Groups** field.
+- **Identical Named Images** checkbox to automatically select the newest Image if multiple Images exist with same name.
+- **Stop on Idle Timeout** checkbox so an instance is stopped and not terminated when the Idle timeout expires.
+- Log if an Instance was created via Jenkins Job label or via Jenkins Nodes.
+
 ## 1.0.8 - July 2020
 
 ### Added

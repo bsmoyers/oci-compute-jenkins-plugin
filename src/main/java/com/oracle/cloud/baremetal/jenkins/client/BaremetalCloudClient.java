@@ -2,14 +2,12 @@ package com.oracle.cloud.baremetal.jenkins.client;
 
 import java.util.List;
 
-import com.oracle.bmc.core.model.Image;
-import com.oracle.bmc.core.model.Instance;
-import com.oracle.bmc.core.model.Shape;
-import com.oracle.bmc.core.model.Subnet;
-import com.oracle.bmc.core.model.Vcn;
+import com.oracle.bmc.core.model.*;
 import com.oracle.bmc.core.responses.GetSubnetResponse;
 import com.oracle.bmc.identity.model.AvailabilityDomain;
 import com.oracle.bmc.identity.model.Compartment;
+import com.oracle.bmc.identity.model.TagNamespaceSummary;
+import com.oracle.bmc.identity.model.Tenancy;
 import com.oracle.bmc.model.BmcException;
 import com.oracle.cloud.baremetal.jenkins.BaremetalCloudAgentTemplate;
 
@@ -58,11 +56,11 @@ public interface BaremetalCloudClient extends AutoCloseable {
      */
     List<Compartment> getCompartmentsList() throws Exception;
 
-    /**Get tenanId for Instance Principals
-     * @return tenanId
+    /**Get root compartment
+     * @return tenancy
      * @throws Exception if an error occurs
      */
-    String getTenantId() throws Exception;
+    Tenancy getTenant() throws Exception;
 
     /**
      * Get the available domain response
@@ -125,6 +123,16 @@ public interface BaremetalCloudClient extends AutoCloseable {
     List<Subnet> getSubNetList(String tenantId, String vcnId) throws Exception;
 
     /**
+     * Get the network security group list
+     *
+     * @param compartmentId the compartment id
+     * @param vcnId vcn id
+     * @return network security group list
+     * @throws Exception if an error occurs
+     */
+    List<NetworkSecurityGroup> getNsgIdsList(String compartmentId, String vcnId) throws Exception;
+
+    /**
      * Get the sub net
      *
      * @param subnetId subnet id
@@ -160,4 +168,40 @@ public interface BaremetalCloudClient extends AutoCloseable {
      */
     Instance.LifecycleState getInstanceState(String instanceId) throws Exception;
 
+    /**
+     * Get a list of stopped instances on OCI
+     *
+     * @param compartmentId the compartment id
+     * @param availableDomain available domain
+     * @return Instance.LifecycleState
+     * @throws Exception if an error occurs
+     */
+    List<Instance> getStoppedInstances(String compartmentId, String availableDomain) throws Exception;
+
+    /**
+     * Stop instance with the specified instance id
+     *
+     * @param instanceId the instance id created before
+     * @return Instance.LifecycleState
+     * @throws Exception if an error occurs
+     */
+    String stopInstance(String instanceId) throws Exception;
+
+    /**
+     * Start instance with the specified instance id
+     *
+     * @param instanceId the instance id created before
+     * @return Instance.LifecycleState
+     * @throws Exception if an error occurs
+     */
+    Instance startInstance(String instanceId) throws Exception;
+
+    /**
+     * Start instance with the specified instance id
+     *
+     * @param compartmentId the compartment id
+     * @return tag namespace summary list
+     * @throws Exception if an error occurs
+     */
+    List<TagNamespaceSummary> getTagNamespaces(String compartmentId) throws Exception;
 }

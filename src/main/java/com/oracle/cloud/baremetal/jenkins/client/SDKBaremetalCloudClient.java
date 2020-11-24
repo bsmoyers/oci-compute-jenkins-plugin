@@ -1,13 +1,12 @@
 package com.oracle.cloud.baremetal.jenkins.client;
 
 import com.oracle.bmc.ClientConfiguration;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import com.oracle.bmc.ClientRuntime;
 import com.oracle.bmc.auth.InstancePrincipalsAuthenticationDetailsProvider;
@@ -18,39 +17,24 @@ import com.oracle.bmc.core.ComputeWaiters;
 import com.oracle.bmc.core.VirtualNetworkAsyncClient;
 import com.oracle.bmc.core.VirtualNetworkClient;
 import com.oracle.bmc.core.model.*;
-import com.oracle.bmc.core.requests.GetInstanceRequest;
-import com.oracle.bmc.core.requests.GetSubnetRequest;
-import com.oracle.bmc.core.requests.GetVnicRequest;
-import com.oracle.bmc.core.requests.LaunchInstanceRequest;
-import com.oracle.bmc.core.requests.ListImagesRequest;
-import com.oracle.bmc.core.requests.ListShapesRequest;
-import com.oracle.bmc.core.requests.ListSubnetsRequest;
-import com.oracle.bmc.core.requests.ListVcnsRequest;
-import com.oracle.bmc.core.requests.ListVnicAttachmentsRequest;
-import com.oracle.bmc.core.requests.TerminateInstanceRequest;
-import com.oracle.bmc.core.responses.GetInstanceResponse;
-import com.oracle.bmc.core.responses.GetSubnetResponse;
-import com.oracle.bmc.core.responses.GetVnicResponse;
-import com.oracle.bmc.core.responses.LaunchInstanceResponse;
-import com.oracle.bmc.core.responses.ListImagesResponse;
-import com.oracle.bmc.core.responses.ListShapesResponse;
-import com.oracle.bmc.core.responses.ListSubnetsResponse;
-import com.oracle.bmc.core.responses.ListVcnsResponse;
-import com.oracle.bmc.core.responses.ListVnicAttachmentsResponse;
-import com.oracle.bmc.core.responses.TerminateInstanceResponse;
+import com.oracle.bmc.core.requests.*;
+import com.oracle.bmc.core.responses.*;
 import com.oracle.bmc.identity.Identity;
 import com.oracle.bmc.identity.IdentityAsyncClient;
 import com.oracle.bmc.identity.IdentityClient;
 import com.oracle.bmc.identity.model.AvailabilityDomain;
 import com.oracle.bmc.identity.model.Compartment;
-import com.oracle.bmc.identity.requests.GetTenancyRequest;
-import com.oracle.bmc.identity.requests.GetUserRequest;
-import com.oracle.bmc.identity.requests.ListAvailabilityDomainsRequest;
-import com.oracle.bmc.identity.requests.ListCompartmentsRequest;
+import com.oracle.bmc.identity.model.TagNamespaceSummary;
+import com.oracle.bmc.identity.model.Tenancy;
+import com.oracle.bmc.identity.requests.*;
+import com.oracle.bmc.identity.responses.GetTenancyResponse;
 import com.oracle.bmc.identity.responses.ListCompartmentsResponse;
+import com.oracle.bmc.identity.responses.ListTagNamespacesResponse;
 import com.oracle.bmc.model.BmcException;
 import com.oracle.cloud.baremetal.jenkins.BaremetalCloudAgentTemplate;
-
+import com.oracle.bmc.core.model.NetworkSecurityGroup;
+import com.oracle.cloud.baremetal.jenkins.BaremetalCloudNsgTemplate;
+import com.oracle.cloud.baremetal.jenkins.BaremetalCloudTagsTemplate;
 import jenkins.model.Jenkins;
 
 /**
@@ -217,7 +201,15 @@ public class SDKBaremetalCloudClient implements BaremetalCloudClient {
             if (!template.getNumberOfOcpus().isEmpty()) {
                 shapeConfig = LaunchInstanceShapeConfigDetails.builder().ocpus(Float.parseFloat(template.getNumberOfOcpus())).build();
             }
-            LaunchInstanceResponse response = computeClient.launchInstance(LaunchInstanceRequest
+
+            List<String> nsgIds = new ArrayList<>();
+            if (template.getNsgIds() != null && !template.getNsgIds().isEmpty()) {
+                nsgIds = template.getNsgIds().stream()
+                        .map(BaremetalCloudNsgTemplate::getNsgId)
+                        .collect(Collectors.toList());
+            }
+
+            LaunchInstanceDetails.Builder instanceDetailsBuilder = LaunchInstanceDetails
                     .builder()
                     .launchInstanceDetails(
                             LaunchInstanceDetails
@@ -229,13 +221,40 @@ public class SDKBaremetalCloudClient implements BaremetalCloudClient {
                                     CreateVnicDetails.builder()
                                     .assignPublicIp(assignPublicIP)
                                     .subnetId(subnetIdStr)
+                                    .nsgIds(nsgIds)
                                     .build())
-                            .displayName(instanceName)
-                            .imageId(imageIdStr)
-                            .metadata(metadata)
-                            .shape(shape)
-                            .shapeConfig(shapeConfig)
-                            .subnetId(subnetIdStr)
+                    .displayName(instanceName)
+                    .imageId(imageIdStr)
+                    .metadata(metadata)
+                    .shape(shape)
+                    .shapeConfig(shapeConfig)
+                    .subnetId(subnetIdStr);
+
+            if(template.getTags() != null) {
+                Map<String,String> freeFormTags = new HashMap<>();
+                Map<String,Map<String,Object>> definedTags = new HashMap<>();
+                for (BaremetalCloudTagsTemplate tag : template.getTags()) {
+                    if (tag.getNamespace().equals("None")) {
+                        freeFormTags.put(tag.getKey(),tag.getValue());
+                    } else {
+                        Map<String,Object> definedTag = new HashMap<>();
+                        definedTag.put(tag.getKey(),tag.getValue());
+                        definedTags.put(tag.getNamespace(),definedTag);
+                    }
+                }
+                if (!freeFormTags.isEmpty()) {
+                    instanceDetailsBuilder.freeformTags(freeFormTags);
+                }
+
+                if (!definedTags.isEmpty()) {
+                    instanceDetailsBuilder.definedTags(definedTags);
+                }
+            }
+
+            LaunchInstanceResponse response = computeClient.launchInstance(LaunchInstanceRequest
+                    .builder()
+                    .launchInstanceDetails(
+                            instanceDetailsBuilder
                             .build())
                     .build());
 
@@ -321,8 +340,15 @@ public class SDKBaremetalCloudClient implements BaremetalCloudClient {
     }
 
     @Override
-    public String getTenantId() {
-            return provider.getTenantId();
+    public Tenancy getTenant() throws Exception {
+
+        try (IdentityClient identityClient = getIdentityClient()) {
+            GetTenancyResponse response =  identityClient.getTenancy(GetTenancyRequest.builder().tenancyId(provider.getTenantId()).build());
+            return response.getTenancy();
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Failed to get root compartment", e);
+            throw e;
+        }
     }
 
     @Override
@@ -331,7 +357,7 @@ public class SDKBaremetalCloudClient implements BaremetalCloudClient {
         ListCompartmentsRequest.Builder builder;
         try (IdentityAsyncClient identityAsyncClient = getIdentityAsyncClient()) {
             if (!instancePrincipals) {
-                builder = ListCompartmentsRequest.builder().compartmentId(getTenantId()).compartmentIdInSubtree(Boolean.TRUE);
+                builder = ListCompartmentsRequest.builder().compartmentId(provider.getTenantId()).compartmentIdInSubtree(Boolean.TRUE);
             } else {
                 builder = ListCompartmentsRequest.builder().compartmentId(instancePrincipalsTenantId).compartmentIdInSubtree(Boolean.TRUE);
             }
@@ -466,6 +492,21 @@ public class SDKBaremetalCloudClient implements BaremetalCloudClient {
         return subnetList;
     }
 
+    public List<NetworkSecurityGroup> getNsgIdsList(String compartmentId, String vcnId) throws Exception {
+        List<NetworkSecurityGroup> nsgList = new ArrayList<>();
+        try (VirtualNetworkAsyncClient vnc = getVirtualNetworkAsyncClient()) {
+            ListNetworkSecurityGroupsRequest request = ListNetworkSecurityGroupsRequest.builder()
+                    .compartmentId(compartmentId)
+                    .vcnId(vcnId)
+                    .build();
+            nsgList.addAll(vnc.listNetworkSecurityGroups(request,null).get().getItems());
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Failed to get Network Security Group list", e);
+            throw e;
+        }
+        return nsgList;
+    }
+
     @Override
     public GetSubnetResponse getSubNet(String subnetId) throws Exception {
         GetSubnetResponse subnetResponse;
@@ -495,7 +536,10 @@ public class SDKBaremetalCloudClient implements BaremetalCloudClient {
                     GetInstanceRequest.builder()
                     .instanceId(instanceId)
                     .build(),
-                    Instance.LifecycleState.Terminating).execute();
+                    Instance.LifecycleState.Stopping,
+                    Instance.LifecycleState.Stopped,
+                    Instance.LifecycleState.Terminating,
+                    Instance.LifecycleState.Terminated).execute();
             return response.getInstance();
         }
     }
@@ -506,5 +550,72 @@ public class SDKBaremetalCloudClient implements BaremetalCloudClient {
             GetInstanceResponse response = computeClient.getInstance(GetInstanceRequest.builder().instanceId(instanceId).build());
             return response.getInstance().getLifecycleState();
     	}
+    }
+
+    @Override
+    public List<Instance> getStoppedInstances(String compartmentId, String availableDomain) throws Exception {
+        List<Instance> instances = new ArrayList<>();
+        try (ComputeClient computeClient = getComputeClient()) {
+            ListInstancesResponse response = computeClient.listInstances(ListInstancesRequest.builder()
+                    .compartmentId(compartmentId)
+                    .availabilityDomain(availableDomain)
+                    .lifecycleState(Instance.LifecycleState.Stopped)
+                    .build());
+            instances.addAll(response.getItems());
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Failed to get Stopped list", e);
+            throw e;
+        }
+        return instances;
+    }
+
+    @Override
+    public String stopInstance(String instanceId) throws Exception {
+        try (ComputeClient computeClient = getComputeClient()) {
+            InstanceActionRequest.Builder builder = InstanceActionRequest.builder()
+                    .action("STOP")
+                    .instanceId(instanceId);
+            InstanceActionResponse response = computeClient.instanceAction(builder.build());
+
+            return response.getOpcRequestId();
+        }catch(Exception ex){
+            throw new Exception("Failed to stop an instance: " + ex.getMessage());
+        }
+    }
+
+    @Override
+    public Instance startInstance(String instanceId) throws Exception {
+        Instance instance = null;
+        try (ComputeClient computeClient = getComputeClient()) {
+            InstanceActionRequest.Builder builder = InstanceActionRequest.builder()
+                    .action("START")
+                    .instanceId(instanceId);
+            InstanceActionResponse response = computeClient.instanceAction(builder.build());
+            instance = response.getInstance();
+            return instance;
+        }catch(Exception ex){
+            throw new Exception("Failed to start an instance: " + ex.getMessage());
+        }
+    }
+
+    @Override
+    public List<TagNamespaceSummary> getTagNamespaces(String compartmentId) throws Exception {
+        List<TagNamespaceSummary> tagNamespaces = new ArrayList<>();
+        try (IdentityAsyncClient identityAsyncClient = getIdentityAsyncClient()) {
+            ListTagNamespacesRequest.Builder builder = ListTagNamespacesRequest.builder()
+                    .compartmentId(compartmentId)
+                    .includeSubcompartments(Boolean.TRUE);
+            String nextPageToken = null;
+            do {
+                builder.page(nextPageToken);
+                Future<ListTagNamespacesResponse> response = identityAsyncClient.listTagNamespaces(builder.build(),null);
+                tagNamespaces.addAll(response.get().getItems());
+                nextPageToken = response.get().getOpcNextPage();
+            } while (nextPageToken != null);
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Failed to get tag namespaces list", e);
+            throw e;
+        }
+        return tagNamespaces;
     }
 }
