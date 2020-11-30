@@ -211,14 +211,11 @@ public class SDKBaremetalCloudClient implements BaremetalCloudClient {
 
             LaunchInstanceDetails.Builder instanceDetailsBuilder = LaunchInstanceDetails
                     .builder()
-                    .launchInstanceDetails(
-                            LaunchInstanceDetails
-                            .builder()
-                            .sourceDetails(sourceDetails)
-                            .availabilityDomain(ad)
-                            .compartmentId(compartmentIdStr)
-                            .createVnicDetails(
-                                    CreateVnicDetails.builder()
+                    .availabilityDomain(ad)
+                    .compartmentId(compartmentIdStr)
+                    .sourceDetails(sourceDetails)
+                    .createVnicDetails(
+                            CreateVnicDetails.builder()
                                     .assignPublicIp(assignPublicIP)
                                     .subnetId(subnetIdStr)
                                     .nsgIds(nsgIds)
