@@ -774,6 +774,10 @@ public class BaremetalCloudAgentTemplate implements Describable<BaremetalCloudAg
             if (value == null || value.trim().isEmpty()) {
                 return FormValidation.ok();
             }
+            // use -1 for "Demand" retention strategy
+            if (value.equals("-1")) {
+                return FormValidation.ok();
+            } 
             return FormValidation.validateNonNegativeInteger(value);
         }
 

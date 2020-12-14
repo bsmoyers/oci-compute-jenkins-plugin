@@ -108,6 +108,7 @@ public class BaremetalCloudTemplateMonitor extends AsyncPeriodicWork{
                 oldTemplate.imageCompartmentId,
                 newImageId,
                 oldTemplate.shape,
+                oldTemplate.bootVolumeSizeInGBs,
                 oldTemplate.sshCredentialsId,
                 oldTemplate.description,
                 oldTemplate.remoteFS,

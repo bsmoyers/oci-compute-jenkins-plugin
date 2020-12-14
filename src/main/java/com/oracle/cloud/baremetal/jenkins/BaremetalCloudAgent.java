@@ -27,6 +27,8 @@ import hudson.slaves.RetentionStrategy;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 
+import org.jenkinsci.plugins.durabletask.executors.OnceRetentionStrategy;
+
 public class BaremetalCloudAgent extends AbstractCloudSlave{
 
 	/**
@@ -41,6 +43,9 @@ public class BaremetalCloudAgent extends AbstractCloudSlave{
 
         if (idleMinutes == 0) {
             return new RetentionStrategy.Always();
+        }
+        if (idleMinutes < 0 ) {
+            return new OnceRetentionStrategy(30);
         }
         return new BaremetalCloudRetentionStrategy(idleMinutes);
     }
